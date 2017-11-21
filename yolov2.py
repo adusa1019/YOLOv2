@@ -313,7 +313,7 @@ class YOLOv2Predictor(chainer.Chain):
     def predict(self, input_x):
         output = self.predictor(input_x)
         batch_size, input_channel, input_h, input_w = input_x.shape
-        batch_size, _, grid_h, grid_w = output.shape
+        *_, grid_h, grid_w = output.shape
         x, y, w, h, conf, prob = F.split_axis(
             F.reshape(output, (batch_size, self.predictor.n_boxes, self.predictor.n_classes + 5,
                                grid_h, grid_w)), (1, 2, 3, 4, 5),
@@ -321,25 +321,20 @@ class YOLOv2Predictor(chainer.Chain):
         x = F.sigmoid(x)  # xのactivation
         y = F.sigmoid(y)  # yのactivation
         conf = F.sigmoid(conf)  # confのactivation
-        prob = F.transpose(prob, (0, 2, 1, 3, 4))
-        prob = F.softmax(prob)  # probablitiyのacitivation
-        prob = F.transpose(prob, (0, 2, 1, 3, 4))
+        prob = F.softmax(prob, axis=2)  # probablitiyのacitivation
 
         # x, y, w, hを絶対座標へ変換
         x_shift = Variable(np.broadcast_to(np.arange(grid_w, dtype=np.float32), x.shape))
         y_shift = Variable(
-            np.broadcast_to(np.arange(grid_h, dtype=np.float32).reshape(grid_h, 1), y.shape))
+            np.broadcast_to(np.arange(grid_h, dtype=np.float32)[:, np.newaxis], y.shape))
         w_anchor = Variable(
             np.broadcast_to(
-                np.reshape(
-                    np.array(self.anchors, dtype=np.float32)[:, 0],
-                    (self.predictor.n_boxes, 1, 1, 1)), w.shape))
+                np.array(self.anchors,
+                         dtype=np.float32)[:, 0][:, np.newaxis, np.newaxis, np.newaxis], w.shape))
         h_anchor = Variable(
             np.broadcast_to(
-                np.reshape(
-                    np.array(self.anchors, dtype=np.float32)[:, 1],
-                    (self.predictor.n_boxes, 1, 1, 1)), h.shape))
-        # x_shift.to_gpu(), y_shift.to_gpu(), w_anchor.to_gpu(), h_anchor.to_gpu()
+                np.array(self.anchors,
+                         dtype=np.float32)[:, 1][:, np.newaxis, np.newaxis, np.newaxis], h.shape))
         box_x = (x + x_shift) / grid_w
         box_y = (y + y_shift) / grid_h
         box_w = F.exp(w) * w_anchor / grid_w

@@ -6,7 +6,7 @@ import sys
 import time
 
 import numpy as np
-from chainer import serializers, Variable
+import chainer
 import chainer.functions as F
 from PIL import Image, ImageDraw, ImageFont
 
@@ -37,11 +37,9 @@ class CocoPredictor:
         # load model
         print("loading coco model...")
         yolov2 = YOLOv2(n_classes=self.n_classes, n_boxes=self.n_boxes)
-        serializers.load_hdf5(weight_file, yolov2)  # load saved model
+        chainer.serializers.load_hdf5(weight_file, yolov2)  # load saved model
         model = YOLOv2Predictor(yolov2)
         model.init_anchor(anchors)
-        model.predictor.train = False
-        model.predictor.finetune = False
         self.model = model
 
     def __call__(self, orig_img):
@@ -49,43 +47,42 @@ class CocoPredictor:
         orig_input_width, orig_input_height = orig_img.size
         img = reshape_to_yolo_size(orig_img)
         input_width, input_height = img.size
-        img = np.asarray(img, dtype=np.float32) / 255.0
+        img = np.asarray(img, dtype=np.float32)
+        img *= (1.0 / 255.0)  # Scale to [0, 1]
         img = img.transpose(2, 0, 1)
 
         # forward
-        x_data = img[np.newaxis, :, :, :]
-        x = Variable(x_data)
-        x, y, w, h, conf, prob = self.model.predict(x)
+        with chainer.using_config('train', False):
+            x, y, w, h, conf, prob = self.model.predict(chainer.Variable(img[np.newaxis, :]))
 
         # parse results
         _, _, _, grid_h, grid_w = x.shape
-        x = F.reshape(x, (self.n_boxes, grid_h, grid_w)).data
-        y = F.reshape(y, (self.n_boxes, grid_h, grid_w)).data
-        w = F.reshape(w, (self.n_boxes, grid_h, grid_w)).data
-        h = F.reshape(h, (self.n_boxes, grid_h, grid_w)).data
         conf = F.reshape(conf, (self.n_boxes, grid_h, grid_w)).data
         prob = F.transpose(
             F.reshape(prob, (self.n_boxes, self.n_classes, grid_h, grid_w)), (1, 0, 2, 3)).data
         detected_indices = (conf * prob).max(axis=0) > self.detection_thresh
 
-        prob = prob.transpose(1, 2, 3, 0)
+        x = F.reshape(x, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
+        y = F.reshape(y, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
+        w = F.reshape(w, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
+        h = F.reshape(h, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
+        conf = conf[detected_indices]
+        prob = prob.transpose(1, 2, 3, 0)[detected_indices]
+
         results = [{
             "class_id":
-            prob[detected_indices][i].argmax(),
+            prob[i].argmax(),
             "label":
-            self.labels[prob[detected_indices][i].argmax()],
+            self.labels[prob[i].argmax()],
             "probs":
-            prob[detected_indices][i],
+            prob[i],
             "conf":
-            conf[detected_indices][i],
+            conf[i],
             "objectness":
-            conf[detected_indices][i] * prob[detected_indices][i].max(),
+            conf[i] * prob[i].max(),
             "box":
-            Box(x[detected_indices][i] * orig_input_width,
-                y[detected_indices][i] * orig_input_height,
-                w[detected_indices][i] * orig_input_width,
-                h[detected_indices][i] * orig_input_height).crop_region(
-                    orig_input_height, orig_input_width)
+            Box(x[i] * orig_input_width, y[i] * orig_input_height, w[i] * orig_input_width,
+                h[i] * orig_input_height).crop_region(orig_input_height, orig_input_width)
         } for i in range(detected_indices.sum())]
 
         # nms
