@@ -46,6 +46,21 @@ class Box():
         return self
 
 
+class Boxes():
+
+    def __init__(self, xs, ys, ws, hs):
+        self.boxes = [Box(x, y, w, h) for x, y, w, h in xs, ys, ws, hs]
+
+    def left_tops(self):
+        pass
+
+    def right_bottoms(self):
+        pass
+
+    def crop_regions(self, ws, hs):
+        pass
+
+
 # 2本の線の情報を受取り、被ってる線分の長さを返す。あくまで線分
 def overlap(x1, len1, x2, len2):
     len1_half = len1 / 2
