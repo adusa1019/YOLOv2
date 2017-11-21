@@ -1,7 +1,7 @@
+from chainer import Variable
 import chainer.functions as F
 import numpy as np
-import cv2
-from chainer import Variable
+from PIL import Image, ImageDraw, ImageFont
 
 
 def print_cnn_info(name, link, shape_before, shape_after, time):
@@ -34,8 +34,8 @@ def print_pooling_info(name, filter_size, stride, pad, shape_before, shape_after
 def print_fc_info(name, link, time):
     import pdb
     cost = link.W.shape[0] * link.W.shape[1]
-    print('%s %d -> %d (cost = %d): %.6f[sec]' %
-          (name, link.W.shape[1], link.W.shape[0], cost, time))
+    print('%s %d -> %d (cost = %d): %.6f[sec]' % (name, link.W.shape[1], link.W.shape[0], cost,
+                                                  time))
 
     return cost
 
