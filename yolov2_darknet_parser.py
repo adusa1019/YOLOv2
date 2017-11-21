@@ -7,10 +7,10 @@ import sys
 import numpy as np
 from chainer import serializers
 
-# TODO: package にして path 追加なしで呼べるようにする
+# 非パッケージライブラリの呼び出し用にパス追加
 path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
-from yolov2 import YOLOv2, YOLOv2Predictor
+from yolov2 import YOLOv2
 
 parser = argparse.ArgumentParser(description="指定したパスのweightsファイルを読み込み、chainerモデルへ変換する")
 parser.add_argument('file', help="オリジナルのyolov2のweightsファイルへのパスを指定")
