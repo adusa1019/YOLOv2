@@ -16,27 +16,20 @@ sys.path.append(path)
 
 class CocoPredictor:
 
-    def __init__(self):
+    def __init__(self, class_file):
         from yolov2 import YOLOv2, YOLOv2Predictor
         # hyper parameters
         weight_file = "./yolov2_darknet.model"
         self.n_classes = 80
         self.n_boxes = 5
-        self.detection_thresh = 0.5
-        self.iou_thresh = 0.5
-        self.labels = [
-            "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat",
-            "traffic light", "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat",
-            "dog", "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe", "backpack",
-            "umbrella", "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard",
-            "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-            "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
-            "banana", "apple", "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza",
-            "donut", "cake", "chair", "couch", "potted plant", "bed", "dining table", "toilet",
-            "tv", "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave", "oven",
-            "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-            "hair drier", "toothbrush"
-        ]
+        self.detection_thresh = 0.4
+        self.iou_thresh = 0.4
+
+        try:
+            with open(class_file, 'r') as f:
+                self.labels = f.read().strip().split()
+        except FileNotFoundError as e:
+            raise e
         anchors = [[0.738768, 0.874946], [2.42204, 2.65704], [4.30971, 7.04493], [10.246, 4.59428],
                    [12.6868, 11.8741]]
 
@@ -75,26 +68,25 @@ class CocoPredictor:
             F.reshape(prob, (self.n_boxes, self.n_classes, grid_h, grid_w)), (1, 0, 2, 3)).data
         detected_indices = (conf * prob).max(axis=0) > self.detection_thresh
 
-        results = []
-        for i in range(detected_indices.sum()):
-            results.append({
-                "class_id":
-                prob.transpose(1, 2, 3, 0)[detected_indices][i].argmax(),
-                "label":
-                self.labels[prob.transpose(1, 2, 3, 0)[detected_indices][i].argmax()],
-                "probs":
-                prob.transpose(1, 2, 3, 0)[detected_indices][i],
-                "conf":
-                conf[detected_indices][i],
-                "objectness":
-                conf[detected_indices][i] * prob.transpose(1, 2, 3, 0)[detected_indices][i].max(),
-                "box":
-                Box(x[detected_indices][i] * orig_input_width,
-                    y[detected_indices][i] * orig_input_height,
-                    w[detected_indices][i] * orig_input_width,
-                    h[detected_indices][i] * orig_input_height).crop_region(
-                        orig_input_height, orig_input_width)
-            })
+        prob = prob.transpose(1, 2, 3, 0)
+        results = [{
+            "class_id":
+            prob[detected_indices][i].argmax(),
+            "label":
+            self.labels[prob[detected_indices][i].argmax()],
+            "probs":
+            prob[detected_indices][i],
+            "conf":
+            conf[detected_indices][i],
+            "objectness":
+            conf[detected_indices][i] * prob[detected_indices][i].max(),
+            "box":
+            Box(x[detected_indices][i] * orig_input_width,
+                y[detected_indices][i] * orig_input_height,
+                w[detected_indices][i] * orig_input_width,
+                h[detected_indices][i] * orig_input_height).crop_region(
+                    orig_input_height, orig_input_width)
+        } for i in range(detected_indices.sum())]
 
         # nms
         nms_results = nms(results, self.iou_thresh)
@@ -103,8 +95,10 @@ class CocoPredictor:
 
 if __name__ == "__main__":
     # argument parse
-    parser = argparse.ArgumentParser(description="指定したパスの画像を読み込み、bbox及びクラスの予測を行う")
-    parser.add_argument('path', help="画像ファイルへのパスを指定")
+    parser = argparse.ArgumentParser(description="")
+    parser.add_argument('path', help="Root image directory path")
+    parser.add_argument(
+        '--name', '-c', default='configure/names.txt', help="Class name definition file")
     args = parser.parse_args()
     image_file = args.path
 
