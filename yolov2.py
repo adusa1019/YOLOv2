@@ -19,71 +19,71 @@ class YOLOv2(chainer.Chain):
             # common layers for both pretrained layers and yolov2 #
             self.conv1 = L.Convolution2D(3, 32, ksize=3, stride=1, pad=1, nobias=True)
             self.bn1 = L.BatchNormalization(32, use_beta=False, eps=2e-5)
-            self.bias1 = L.Bias(shape=(32, ))
+            self.bias1 = L.Bias(shape=(32,))
             self.conv2 = L.Convolution2D(32, 64, ksize=3, stride=1, pad=1, nobias=True)
             self.bn2 = L.BatchNormalization(64, use_beta=False, eps=2e-5)
-            self.bias2 = L.Bias(shape=(64, ))
+            self.bias2 = L.Bias(shape=(64,))
             self.conv3 = L.Convolution2D(64, 128, ksize=3, stride=1, pad=1, nobias=True)
             self.bn3 = L.BatchNormalization(128, use_beta=False, eps=2e-5)
-            self.bias3 = L.Bias(shape=(128, ))
+            self.bias3 = L.Bias(shape=(128,))
             self.conv4 = L.Convolution2D(128, 64, ksize=1, stride=1, pad=0, nobias=True)
             self.bn4 = L.BatchNormalization(64, use_beta=False, eps=2e-5)
-            self.bias4 = L.Bias(shape=(64, ))
+            self.bias4 = L.Bias(shape=(64,))
             self.conv5 = L.Convolution2D(64, 128, ksize=3, stride=1, pad=1, nobias=True)
             self.bn5 = L.BatchNormalization(128, use_beta=False, eps=2e-5)
-            self.bias5 = L.Bias(shape=(128, ))
+            self.bias5 = L.Bias(shape=(128,))
             self.conv6 = L.Convolution2D(128, 256, ksize=3, stride=1, pad=1, nobias=True)
             self.bn6 = L.BatchNormalization(256, use_beta=False, eps=2e-5)
-            self.bias6 = L.Bias(shape=(256, ))
+            self.bias6 = L.Bias(shape=(256,))
             self.conv7 = L.Convolution2D(256, 128, ksize=1, stride=1, pad=0, nobias=True)
             self.bn7 = L.BatchNormalization(128, use_beta=False, eps=2e-5)
-            self.bias7 = L.Bias(shape=(128, ))
+            self.bias7 = L.Bias(shape=(128,))
             self.conv8 = L.Convolution2D(128, 256, ksize=3, stride=1, pad=1, nobias=True)
             self.bn8 = L.BatchNormalization(256, use_beta=False, eps=2e-5)
-            self.bias8 = L.Bias(shape=(256, ))
+            self.bias8 = L.Bias(shape=(256,))
             self.conv9 = L.Convolution2D(256, 512, ksize=3, stride=1, pad=1, nobias=True)
             self.bn9 = L.BatchNormalization(512, use_beta=False, eps=2e-5)
-            self.bias9 = L.Bias(shape=(512, ))
+            self.bias9 = L.Bias(shape=(512,))
             self.conv10 = L.Convolution2D(512, 256, ksize=1, stride=1, pad=0, nobias=True)
             self.bn10 = L.BatchNormalization(256, use_beta=False, eps=2e-5)
-            self.bias10 = L.Bias(shape=(256, ))
+            self.bias10 = L.Bias(shape=(256,))
             self.conv11 = L.Convolution2D(256, 512, ksize=3, stride=1, pad=1, nobias=True)
             self.bn11 = L.BatchNormalization(512, use_beta=False, eps=2e-5)
-            self.bias11 = L.Bias(shape=(512, ))
+            self.bias11 = L.Bias(shape=(512,))
             self.conv12 = L.Convolution2D(512, 256, ksize=1, stride=1, pad=0, nobias=True)
             self.bn12 = L.BatchNormalization(256, use_beta=False, eps=2e-5)
-            self.bias12 = L.Bias(shape=(256, ))
+            self.bias12 = L.Bias(shape=(256,))
             self.conv13 = L.Convolution2D(256, 512, ksize=3, stride=1, pad=1, nobias=True)
             self.bn13 = L.BatchNormalization(512, use_beta=False, eps=2e-5)
-            self.bias13 = L.Bias(shape=(512, ))
+            self.bias13 = L.Bias(shape=(512,))
             self.conv14 = L.Convolution2D(512, 1024, ksize=3, stride=1, pad=1, nobias=True)
             self.bn14 = L.BatchNormalization(1024, use_beta=False, eps=2e-5)
-            self.bias14 = L.Bias(shape=(1024, ))
+            self.bias14 = L.Bias(shape=(1024,))
             self.conv15 = L.Convolution2D(1024, 512, ksize=1, stride=1, pad=0, nobias=True)
             self.bn15 = L.BatchNormalization(512, use_beta=False, eps=2e-5)
-            self.bias15 = L.Bias(shape=(512, ))
+            self.bias15 = L.Bias(shape=(512,))
             self.conv16 = L.Convolution2D(512, 1024, ksize=3, stride=1, pad=1, nobias=True)
             self.bn16 = L.BatchNormalization(1024, use_beta=False, eps=2e-5)
-            self.bias16 = L.Bias(shape=(1024, ))
+            self.bias16 = L.Bias(shape=(1024,))
             self.conv17 = L.Convolution2D(1024, 512, ksize=1, stride=1, pad=0, nobias=True)
             self.bn17 = L.BatchNormalization(512, use_beta=False, eps=2e-5)
-            self.bias17 = L.Bias(shape=(512, ))
+            self.bias17 = L.Bias(shape=(512,))
             self.conv18 = L.Convolution2D(512, 1024, ksize=3, stride=1, pad=1, nobias=True)
             self.bn18 = L.BatchNormalization(1024, use_beta=False, eps=2e-5)
-            self.bias18 = L.Bias(shape=(1024, ))
+            self.bias18 = L.Bias(shape=(1024,))
             # new layer
             self.conv19 = L.Convolution2D(1024, 1024, ksize=3, stride=1, pad=1, nobias=True)
             self.bn19 = L.BatchNormalization(1024, use_beta=False)
-            self.bias19 = L.Bias(shape=(1024, ))
+            self.bias19 = L.Bias(shape=(1024,))
             self.conv20 = L.Convolution2D(1024, 1024, ksize=3, stride=1, pad=1, nobias=True)
             self.bn20 = L.BatchNormalization(1024, use_beta=False)
-            self.bias20 = L.Bias(shape=(1024, ))
+            self.bias20 = L.Bias(shape=(1024,))
             self.conv21 = L.Convolution2D(3072, 1024, ksize=3, stride=1, pad=1, nobias=True)
             self.bn21 = L.BatchNormalization(1024, use_beta=False)
-            self.bias21 = L.Bias(shape=(1024, ))
+            self.bias21 = L.Bias(shape=(1024,))
             self.conv22 = L.Convolution2D(
                 1024, n_boxes * (5 + n_classes), ksize=1, stride=1, pad=0, nobias=True)
-            self.bias22 = L.Bias(shape=(n_boxes * (5 + n_classes), ))
+            self.bias22 = L.Bias(shape=(n_boxes * (5 + n_classes),))
         self.n_boxes = n_boxes
         self.n_classes = n_classes
 
@@ -125,6 +125,7 @@ class YOLOv2(chainer.Chain):
 
 
 class YOLOv2Predictor(chainer.Chain):
+
     def __init__(self, predictor):
         super(YOLOv2Predictor, self).__init__(predictor=predictor)
         self.anchors = [[5.375, 5.03125], [5.40625, 4.6875], [2.96875, 2.53125],
@@ -168,21 +169,17 @@ class YOLOv2Predictor(chainer.Chain):
         # 全bboxとtruthのiouを計算(batch単位で計算する)
         x_shift = Variable(np.broadcast_to(np.arange(grid_w, dtype=np.float32), x.shape[1:]))
         y_shift = Variable(
-            np.broadcast_to(
-                np.arange(
-                    grid_h, dtype=np.float32).reshape(grid_h, 1), y.shape[1:]))
+            np.broadcast_to(np.arange(grid_h, dtype=np.float32).reshape(grid_h, 1), y.shape[1:]))
         w_anchor = Variable(
             np.broadcast_to(
                 np.reshape(
-                    np.array(
-                        self.anchors, dtype=np.float32)[:, 0], (self.predictor.n_boxes, 1, 1, 1)),
-                w.shape[1:]))
+                    np.array(self.anchors, dtype=np.float32)[:, 0],
+                    (self.predictor.n_boxes, 1, 1, 1)), w.shape[1:]))
         h_anchor = Variable(
             np.broadcast_to(
                 np.reshape(
-                    np.array(
-                        self.anchors, dtype=np.float32)[:, 1], (self.predictor.n_boxes, 1, 1, 1)),
-                h.shape[1:]))
+                    np.array(self.anchors, dtype=np.float32)[:, 1],
+                    (self.predictor.n_boxes, 1, 1, 1)), h.shape[1:]))
         x_shift.to_gpu(), y_shift.to_gpu(), w_anchor.to_gpu(), h_anchor.to_gpu()
         best_ious = []
         for batch in range(batch_size):
@@ -196,20 +193,16 @@ class YOLOv2Predictor(chainer.Chain):
             for truth_index in range(n_truth_boxes):
                 truth_box_x = Variable(
                     np.broadcast_to(
-                        np.array(
-                            t[batch][truth_index]["x"], dtype=np.float32), box_x.shape))
+                        np.array(t[batch][truth_index]["x"], dtype=np.float32), box_x.shape))
                 truth_box_y = Variable(
                     np.broadcast_to(
-                        np.array(
-                            t[batch][truth_index]["y"], dtype=np.float32), box_y.shape))
+                        np.array(t[batch][truth_index]["y"], dtype=np.float32), box_y.shape))
                 truth_box_w = Variable(
                     np.broadcast_to(
-                        np.array(
-                            t[batch][truth_index]["w"], dtype=np.float32), box_w.shape))
+                        np.array(t[batch][truth_index]["w"], dtype=np.float32), box_w.shape))
                 truth_box_h = Variable(
                     np.broadcast_to(
-                        np.array(
-                            t[batch][truth_index]["h"], dtype=np.float32), box_h.shape))
+                        np.array(t[batch][truth_index]["h"], dtype=np.float32), box_h.shape))
                 truth_box_x.to_gpu(), truth_box_y.to_gpu(), truth_box_w.to_gpu(
                 ), truth_box_h.to_gpu()
                 ious.append(
@@ -334,21 +327,17 @@ class YOLOv2Predictor(chainer.Chain):
         # x, y, w, hを絶対座標へ変換
         x_shift = Variable(np.broadcast_to(np.arange(grid_w, dtype=np.float32), x.shape))
         y_shift = Variable(
-            np.broadcast_to(
-                np.arange(
-                    grid_h, dtype=np.float32).reshape(grid_h, 1), y.shape))
+            np.broadcast_to(np.arange(grid_h, dtype=np.float32).reshape(grid_h, 1), y.shape))
         w_anchor = Variable(
             np.broadcast_to(
                 np.reshape(
-                    np.array(
-                        self.anchors, dtype=np.float32)[:, 0], (self.predictor.n_boxes, 1, 1, 1)),
-                w.shape))
+                    np.array(self.anchors, dtype=np.float32)[:, 0],
+                    (self.predictor.n_boxes, 1, 1, 1)), w.shape))
         h_anchor = Variable(
             np.broadcast_to(
                 np.reshape(
-                    np.array(
-                        self.anchors, dtype=np.float32)[:, 1], (self.predictor.n_boxes, 1, 1, 1)),
-                h.shape))
+                    np.array(self.anchors, dtype=np.float32)[:, 1],
+                    (self.predictor.n_boxes, 1, 1, 1)), h.shape))
         # x_shift.to_gpu(), y_shift.to_gpu(), w_anchor.to_gpu(), h_anchor.to_gpu()
         box_x = (x + x_shift) / grid_w
         box_y = (y + y_shift) / grid_h
