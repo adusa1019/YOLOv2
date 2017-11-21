@@ -138,7 +138,7 @@ def nms(predicted_results, iou_thresh):
 def reshape_to_yolo_size(img):
     input_width, input_height = img.size
     min_pixel = 320
-    max_pixel = 448
+    max_pixel = 416
 
     min_edge = np.minimum(input_width, input_height)
     if min_edge < min_pixel:
