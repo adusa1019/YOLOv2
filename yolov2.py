@@ -351,6 +351,5 @@ class YOLOv2Predictor(chainer.Chain):
         detect_w = F.squeeze(box_w).data[detected_indices]
         detect_h = F.squeeze(box_h).data[detected_indices]
         conf = conf[detected_indices]
-        prob = prob.transpose(1, 2, 3, 0)[detected_indices] if batch_size == 1 else prob.transpose(
-            1, 2, 3, 4, 0)[detected_indices]
+        prob = prob.transpose((*tuple((range(1, len(prob.shape)))), 0))[detected_indices]
         return detect_x, detect_y, detect_w, detect_h, conf, prob

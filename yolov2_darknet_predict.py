@@ -41,10 +41,10 @@ class CocoPredictor:
         model.init_anchor(anchors)
         self.model = model
 
-    def __call__(self, orig_img):
+    def __call__(self, input_img):
         from lib.utils import Box, nms, reshape_to_yolo_size
-        orig_input_width, orig_input_height = orig_img.size
-        img = reshape_to_yolo_size(orig_img)
+        input_width, input_height = input_img.size
+        img = reshape_to_yolo_size(input_img)
         img = np.asarray(img, dtype=np.float32)
         img *= (1.0 / 255.0)  # Scale to [0, 1]
         img = img.transpose(2, 0, 1)
@@ -52,23 +52,20 @@ class CocoPredictor:
         # forward
         with chainer.using_config('train', False):
             x, y, w, h, conf, prob = self.model.predict(img, self.detection_thresh)
+        x *= input_width
+        y *= input_height
+        w *= input_width
+        h *= input_height
 
         # parse results
         results = [{
-            "class_id":
-            prob[i].argmax(),
-            "label":
-            self.labels[prob[i].argmax()],
-            "probs":
-            prob[i],
-            "conf":
-            conf[i],
-            "objectness":
-            conf[i] * prob[i].max(),
-            "box":
-            Box(x[i] * orig_input_width, y[i] * orig_input_height, w[i] * orig_input_width,
-                h[i] * orig_input_height).crop_region(orig_input_height, orig_input_width)
-        } for i in range(len(x))]
+            "class_id": _id,
+            "label": self.labels[_id],
+            "probs": _p,
+            "conf": _c,
+            "objectness": _c * _p.max(),
+            "box": Box(_x, _y, _w, _h).crop_region(input_height, input_width)
+        } for _x, _y, _w, _h, _p, _id, _c in zip(x, y, w, h, prob, prob.argmax(axis=1), conf)]
 
         # nms
         nms_results = nms(results, self.iou_thresh)
@@ -96,6 +93,7 @@ if __name__ == "__main__":
 
     # draw result
     draw = ImageDraw.Draw(orig_img)
+    font = ImageFont.truetype("C:/Windows/Fonts/msgothic.ttc", 24)
     with open("result/yolov2_result_%s.txt" % os.path.basename(path), "w") as f:
         for result in nms_results:
             left, top = result["box"].int_left_top()
@@ -104,7 +102,6 @@ if __name__ == "__main__":
                 (result["box"].int_left_top(), result["box"].int_right_bottom()),
                 outline=(0, 255, 0))
             text = '%s(%2d%%)' % (result["label"], result["probs"].max() * result["conf"] * 100)
-            font = ImageFont.truetype("C:/Windows/Fonts/msgothic.ttc", 24)
             draw.text((left, bottom - 24), text, font=font)
             # print(text)
             f.write(text + "\n")
