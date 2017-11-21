@@ -1,15 +1,16 @@
-import numpy as np
-import chainer
-from chainer import cuda, Function, gradient_check, Variable, optimizers, serializers, utils
-from chainer import Link, Chain, ChainList
-import chainer.functions as F
-import chainer.links as L
-from chainer import training
-from chainer.training import extensions
+# coding=utf-8
+
 import argparse
-from lib.utils import *
-from lib.image_generator import *
-from yolov2 import *
+import os
+import sys
+
+import numpy as np
+from chainer import serializers
+
+# TODO: package にして path 追加なしで呼べるようにする
+path = os.path.join(os.path.dirname(__file__), '../')
+sys.path.append(path)
+from yolov2 import YOLOv2, YOLOv2Predictor
 
 parser = argparse.ArgumentParser(description="指定したパスのweightsファイルを読み込み、chainerモデルへ変換する")
 parser.add_argument('file', help="オリジナルのyolov2のweightsファイルへのパスを指定")
@@ -26,8 +27,6 @@ n_boxes = 5
 last_out = (n_classes + 5) * n_boxes
 
 yolov2 = YOLOv2(n_classes=n_classes, n_boxes=n_boxes)
-yolov2.train = True
-yolov2.finetune = False
 
 layers = [
     [3, 32, 3],
@@ -79,7 +78,9 @@ for i, l in enumerate(layers):
     offset += out_ch
     exec(txt)
 
-    # load convolution weight(Convolution2D.Wは、outch * in_ch * フィルタサイズ。これを(out_ch, in_ch, 3, 3)にreshapeする)
+    # load convolution weight
+    # (Convolution2D.Wは、outch * in_ch * フィルタサイズ
+    # これを(out_ch, in_ch, 3, 3)にreshapeする)
     txt = "yolov2.conv%d.W.data = dat[%d:%d].reshape(%d, %d, %d, %d)" % (
         i + 1, offset, offset + (out_ch * in_ch * ksize * ksize), out_ch, in_ch, ksize, ksize)
     offset += (out_ch * in_ch * ksize * ksize)
