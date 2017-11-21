@@ -51,7 +51,7 @@ class CocoPredictor:
 
         # forward
         with chainer.using_config('train', False):
-            x, y, w, h, conf, prob = self.model.predict(img, self.detection_thresh)
+            x, y, w, h, conf, prob = self.model.predict(img[np.newaxis, :], self.detection_thresh)
         x *= input_width
         y *= input_height
         w *= input_width

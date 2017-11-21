@@ -311,9 +311,9 @@ class YOLOv2Predictor(chainer.Chain):
         self.anchors = anchors
 
     def predict(self, input_x, detection_thresh):
-        input_x = Variable(input_x[np.newaxis, :])
-        output = self.predictor(input_x)
         batch_size, input_channel, input_h, input_w = input_x.shape
+        input_x = Variable(input_x)
+        output = self.predictor(input_x)
         *_, grid_h, grid_w = output.shape
         x, y, w, h, conf, prob = F.split_axis(
             F.reshape(output, (batch_size, self.predictor.n_boxes, self.predictor.n_classes + 5,
@@ -336,20 +336,22 @@ class YOLOv2Predictor(chainer.Chain):
             np.broadcast_to(
                 np.array(self.anchors,
                          dtype=np.float32)[:, 1][:, np.newaxis, np.newaxis, np.newaxis], h.shape))
-        box_x = (x + x_shift) / grid_w
-        box_y = (y + y_shift) / grid_h
-        box_w = F.exp(w) * w_anchor / grid_w
-        box_h = F.exp(h) * h_anchor / grid_h
+        x = (x + x_shift) / grid_w
+        y = (y + y_shift) / grid_h
+        w = F.exp(w) * w_anchor / grid_w
+        h = F.exp(h) * h_anchor / grid_h
 
+        # 物体があるかの判定用配列を計算
         conf = F.squeeze(conf).data
         prob = F.squeeze(F.transpose(prob, (2, 0, 1, 3, 4))).data
         detected_indices = (conf * prob).max(axis=0) > detection_thresh
 
-        # batch_size, n_box, grid_h, grid_w
-        detect_x = F.squeeze(box_x).data[detected_indices]
-        detect_y = F.squeeze(box_y).data[detected_indices]
-        detect_w = F.squeeze(box_w).data[detected_indices]
-        detect_h = F.squeeze(box_h).data[detected_indices]
+        # (batch_size,:1より大きいときだけ存在) n_box, grid_h, grid_w に整形
+        x = F.squeeze(x).data[detected_indices]
+        y = F.squeeze(y).data[detected_indices]
+        w = F.squeeze(w).data[detected_indices]
+        h = F.squeeze(h).data[detected_indices]
         conf = conf[detected_indices]
+        # batch_size == 1 のときだけ次元が一つ落ちるので動的に変更後の形を決定
         prob = prob.transpose((*tuple((range(1, len(prob.shape)))), 0))[detected_indices]
-        return detect_x, detect_y, detect_w, detect_h, conf, prob
+        return x, y, w, h, conf, prob
