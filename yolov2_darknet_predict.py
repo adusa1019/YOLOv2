@@ -113,7 +113,7 @@ if __name__ == "__main__":
 
     # draw result
     draw = ImageDraw.Draw(orig_img)
-    with open("results/yolov2_result_%s.txt" % path.split("\\")[-1], "w") as f:
+    with open("result/yolov2_result_%s.txt" % os.path.basename(path), "w") as f:
         for result in nms_results:
             left, top = result["box"].int_left_top()
             right, bottom = result["box"].int_right_bottom()
@@ -121,11 +121,11 @@ if __name__ == "__main__":
                 (result["box"].int_left_top(), result["box"].int_right_bottom()),
                 outline=(0, 255, 0))
             text = '%s(%2d%%)' % (result["label"], result["probs"].max() * result["conf"] * 100)
-            font = ImageFont.truetype("C:\\Windows\\Fonts\\msgothic.ttc", 24)
+            font = ImageFont.truetype("C:/Windows/Fonts/msgothic.ttc", 24)
             draw.text((left, bottom - 24), text, font=font)
             # print(text)
             f.write(text + "\n")
 
     print("after predict: {}".format(time.time() - start))
-    print("save results to yolov2_result_%s.jpg" % path.split("\\")[-1])
-    orig_img.save("results/yolov2_result_%s.jpg" % path.split("\\")[-1])
+    print("save results to yolov2_result_%s.jpg" % os.path.basename(path))
+    orig_img.save("result/yolov2_result_%s.jpg" % os.path.basename(path))
