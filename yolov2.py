@@ -107,7 +107,7 @@ class YOLOv2(chainer.Chain):
         h = F.leaky_relu(self.bias11(self.bn11(self.conv11(h))), slope=0.1)
         h = F.leaky_relu(self.bias12(self.bn12(self.conv12(h))), slope=0.1)
         h = F.leaky_relu(self.bias13(self.bn13(self.conv13(h))), slope=0.1)
-        high_resolution_feature = reorg(h)  # 高解像度特徴量をreorgでサイズ落として保存しておく
+        high_resolution_feature = reorg.reorg(h)  # 高解像度特徴量をreorgでサイズ落として保存しておく
         h = F.max_pooling_2d(h, ksize=2, stride=2, pad=0)
         h = F.leaky_relu(self.bias14(self.bn14(self.conv14(h))), slope=0.1)
         h = F.leaky_relu(self.bias15(self.bn15(self.conv15(h))), slope=0.1)
