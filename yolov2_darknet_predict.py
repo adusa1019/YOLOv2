@@ -7,7 +7,6 @@ import time
 
 import numpy as np
 import chainer
-import chainer.functions as F
 from PIL import Image, ImageDraw, ImageFont
 
 # 非パッケージライブラリの呼び出し用にパス追加
@@ -46,29 +45,15 @@ class CocoPredictor:
         from lib.utils import Box, nms, reshape_to_yolo_size
         orig_input_width, orig_input_height = orig_img.size
         img = reshape_to_yolo_size(orig_img)
-        input_width, input_height = img.size
         img = np.asarray(img, dtype=np.float32)
         img *= (1.0 / 255.0)  # Scale to [0, 1]
         img = img.transpose(2, 0, 1)
 
         # forward
         with chainer.using_config('train', False):
-            x, y, w, h, conf, prob = self.model.predict(chainer.Variable(img[np.newaxis, :]))
+            x, y, w, h, conf, prob = self.model.predict(img, self.detection_thresh)
 
         # parse results
-        _, _, _, grid_h, grid_w = x.shape
-        conf = F.reshape(conf, (self.n_boxes, grid_h, grid_w)).data
-        prob = F.transpose(
-            F.reshape(prob, (self.n_boxes, self.n_classes, grid_h, grid_w)), (1, 0, 2, 3)).data
-        detected_indices = (conf * prob).max(axis=0) > self.detection_thresh
-
-        x = F.reshape(x, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
-        y = F.reshape(y, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
-        w = F.reshape(w, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
-        h = F.reshape(h, (self.n_boxes, grid_h, grid_w)).data[detected_indices]
-        conf = conf[detected_indices]
-        prob = prob.transpose(1, 2, 3, 0)[detected_indices]
-
         results = [{
             "class_id":
             prob[i].argmax(),
@@ -83,7 +68,7 @@ class CocoPredictor:
             "box":
             Box(x[i] * orig_input_width, y[i] * orig_input_height, w[i] * orig_input_width,
                 h[i] * orig_input_height).crop_region(orig_input_height, orig_input_width)
-        } for i in range(detected_indices.sum())]
+        } for i in range(len(x))]
 
         # nms
         nms_results = nms(results, self.iou_thresh)
@@ -106,6 +91,7 @@ if __name__ == "__main__":
 
     predictor = CocoPredictor(args.name)
     print("after load: {}".format(time.time() - start))
+    start = time.time()
     nms_results = predictor(orig_img)
 
     # draw result

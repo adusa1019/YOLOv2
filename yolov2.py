@@ -310,7 +310,8 @@ class YOLOv2Predictor(chainer.Chain):
     def init_anchor(self, anchors):
         self.anchors = anchors
 
-    def predict(self, input_x):
+    def predict(self, input_x, detection_thresh):
+        input_x = Variable(input_x[np.newaxis, :])
         output = self.predictor(input_x)
         batch_size, input_channel, input_h, input_w = input_x.shape
         *_, grid_h, grid_w = output.shape
@@ -340,4 +341,16 @@ class YOLOv2Predictor(chainer.Chain):
         box_w = F.exp(w) * w_anchor / grid_w
         box_h = F.exp(h) * h_anchor / grid_h
 
-        return box_x, box_y, box_w, box_h, conf, prob
+        conf = F.squeeze(conf).data
+        prob = F.squeeze(F.transpose(prob, (2, 0, 1, 3, 4))).data
+        detected_indices = (conf * prob).max(axis=0) > detection_thresh
+
+        # batch_size, n_box, grid_h, grid_w
+        detect_x = F.squeeze(box_x).data[detected_indices]
+        detect_y = F.squeeze(box_y).data[detected_indices]
+        detect_w = F.squeeze(box_w).data[detected_indices]
+        detect_h = F.squeeze(box_h).data[detected_indices]
+        conf = conf[detected_indices]
+        prob = prob.transpose(1, 2, 3, 0)[detected_indices] if batch_size == 1 else prob.transpose(
+            1, 2, 3, 4, 0)[detected_indices]
+        return detect_x, detect_y, detect_w, detect_h, conf, prob
