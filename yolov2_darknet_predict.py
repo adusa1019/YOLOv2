@@ -3,11 +3,12 @@
 import argparse
 import os
 import sys
+import time
 
-import cv2
 import numpy as np
 from chainer import serializers, Variable
 import chainer.functions as F
+from PIL import Image, ImageDraw, ImageFont
 
 # 非パッケージライブラリの呼び出し用にパス追加
 path = os.path.join(os.path.dirname(__file__), '../')
@@ -19,7 +20,7 @@ class CocoPredictor:
     def __init__(self, class_file):
         from yolov2 import YOLOv2, YOLOv2Predictor
         # hyper parameters
-        weight_file = "./yolov2_darknet.model"
+        weight_file = "configure/yolov2_darknet.model"
         self.n_classes = 80
         self.n_boxes = 5
         self.detection_thresh = 0.4
@@ -45,10 +46,9 @@ class CocoPredictor:
 
     def __call__(self, orig_img):
         from lib.utils import Box, nms, reshape_to_yolo_size
-        orig_input_height, orig_input_width, _ = orig_img.shape
+        orig_input_width, orig_input_height = orig_img.size
         img = reshape_to_yolo_size(orig_img)
-        input_height, input_width, _ = img.shape
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        input_width, input_height = img.size
         img = np.asarray(img, dtype=np.float32) / 255.0
         img = img.transpose(2, 0, 1)
 
@@ -98,28 +98,34 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="")
     parser.add_argument('path', help="Root image directory path")
     parser.add_argument(
-        '--name', '-c', default='configure/names.txt', help="Class name definition file")
+        '--name', '-n', default='configure/names.txt', help="Class name definition file")
     args = parser.parse_args()
     image_file = args.path
 
+    start = time.time()
     # read image
     print("loading image...")
-    orig_img = cv2.imread(image_file)
+    orig_img = Image.open(image_file)
 
-    predictor = CocoPredictor()
+    predictor = CocoPredictor(args.name)
+    print("after load: {}".format(time.time() - start))
     nms_results = predictor(orig_img)
 
     # draw result
-    for result in nms_results:
-        left, top = result["box"].int_left_top()
-        cv2.rectangle(orig_img, result["box"].int_left_top(), result["box"].int_right_bottom(),
-                      (0, 255, 0), 5)
-        text = '%s(%2d%%)' % (result["label"], result["probs"].max() * result["conf"] * 100)
-        cv2.putText(orig_img, text, (left, top - 6), cv2.FONT_HERSHEY_SIMPLEX, 0.6,
-                    (255, 255, 255), 2)
-        print(text)
+    draw = ImageDraw.Draw(orig_img)
+    with open("results/yolov2_result_%s.txt" % path.split("\\")[-1], "w") as f:
+        for result in nms_results:
+            left, top = result["box"].int_left_top()
+            right, bottom = result["box"].int_right_bottom()
+            draw.rectangle(
+                (result["box"].int_left_top(), result["box"].int_right_bottom()),
+                outline=(0, 255, 0))
+            text = '%s(%2d%%)' % (result["label"], result["probs"].max() * result["conf"] * 100)
+            font = ImageFont.truetype("C:\\Windows\\Fonts\\msgothic.ttc", 24)
+            draw.text((left, bottom - 24), text, font=font)
+            # print(text)
+            f.write(text + "\n")
 
-    print("save results to yolov2_result.jpg")
-    cv2.imwrite("yolov2_result.jpg", orig_img)
-    cv2.imshow("w", orig_img)
-    cv2.waitKey()
+    print("after predict: {}".format(time.time() - start))
+    print("save results to yolov2_result_%s.jpg" % path.split("\\")[-1])
+    orig_img.save("results/yolov2_result_%s.jpg" % path.split("\\")[-1])

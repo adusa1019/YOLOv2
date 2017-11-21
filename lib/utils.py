@@ -1,43 +1,6 @@
 from chainer import Variable
 import chainer.functions as F
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-
-
-def print_cnn_info(name, link, shape_before, shape_after, time):
-    n_stride = (int((shape_before[2] + link.pad[0] * 2 - link.ksize) / link.stride[0]) + 1, int(
-        (shape_before[3] + link.pad[1] * 2 - link.ksize) / link.stride[1]) + 1)
-
-    cost = n_stride[0] * n_stride[1] * shape_before[
-        1] * link.ksize * link.ksize * link.out_channels
-
-    print('%s(%d × %d, stride=%d, pad=%d) (%d x %d x %d) -> (%d x %d x %d) (cost=%d): %.6f[sec]' %
-          (name, link.W.shape[2], link.W.shape[3], link.stride[0], link.pad[0], shape_before[2],
-           shape_before[3], shape_before[1], shape_after[2], shape_after[3], shape_after[1], cost,
-           time))
-
-    return cost
-
-
-def print_pooling_info(name, filter_size, stride, pad, shape_before, shape_after, time):
-    n_stride = (int((shape_before[2] - filter_size) / stride) + 1, int(
-        (shape_before[3] - filter_size) / stride) + 1)
-    cost = n_stride[0] * n_stride[1] * shape_before[1] * filter_size * filter_size * shape_after[1]
-
-    print('%s(%d × %d, stride=%d, pad=%d) (%d x %d x %d) -> (%d x %d x %d) (cost=%d): %.6f[sec]' %
-          (name, filter_size, filter_size, stride, pad, shape_before[2], shape_before[3],
-           shape_before[1], shape_after[2], shape_after[3], shape_after[1], cost, time))
-
-    return cost
-
-
-def print_fc_info(name, link, time):
-    import pdb
-    cost = link.W.shape[0] * link.W.shape[1]
-    print('%s %d -> %d (cost = %d): %.6f[sec]' % (name, link.W.shape[1], link.W.shape[0], cost,
-                                                  time))
-
-    return cost
 
 
 # x, y, w, hの4パラメータを保持するだけのクラス
@@ -154,28 +117,6 @@ def multi_box_iou(a, b):
     return multi_box_intersection(a, b) / multi_box_union(a, b)
 
 
-# 画像を読み込んで、hue, sat, val空間でランダム変換を加える関数
-def random_hsv_image(bgr_image, delta_hue, delta_sat_scale, delta_val_scale):
-    hsv_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV).astype(np.float32)
-
-    # hue
-    hsv_image[:, :, 0] += int((np.random.rand() * delta_hue * 2 - delta_hue) * 255)
-
-    # sat
-    sat_scale = 1 + np.random.rand() * delta_sat_scale * 2 - delta_sat_scale
-    hsv_image[:, :, 1] *= sat_scale
-
-    # val
-    val_scale = 1 + np.random.rand() * delta_val_scale * 2 - delta_val_scale
-    hsv_image[:, :, 2] *= val_scale
-
-    hsv_image[hsv_image < 0] = 0
-    hsv_image[hsv_image > 255] = 255
-    hsv_image = hsv_image.astype(np.uint8)
-    bgr_image = cv2.cvtColor(hsv_image, cv2.COLOR_HSV2BGR)
-    return bgr_image
-
-
 # non maximum suppression
 def nms(predicted_results, iou_thresh):
     nms_results = []
@@ -195,9 +136,8 @@ def nms(predicted_results, iou_thresh):
 
 # reshape to yolo size
 def reshape_to_yolo_size(img):
-    input_height, input_width, _ = img.shape
+    input_width, input_height = img.size
     min_pixel = 320
-    #max_pixel = 608
     max_pixel = 448
 
     min_edge = np.minimum(input_width, input_height)
@@ -211,6 +151,6 @@ def reshape_to_yolo_size(img):
 
     input_width = int(input_width / 32 + round(input_width % 32 / 32)) * 32
     input_height = int(input_height / 32 + round(input_height % 32 / 32)) * 32
-    img = cv2.resize(img, (input_width, input_height))
+    img = img.resize((input_width, input_height))
 
     return img
