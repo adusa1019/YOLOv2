@@ -3,8 +3,9 @@ import chainer
 from chainer import Variable
 import chainer.links as L
 import chainer.functions as F
-from lib.utils import *
-from lib.functions import *
+
+from lib.utils import Box, box_iou, multi_box_iou
+from lib.functions import reorg
 
 
 class YOLOv2(chainer.Chain):
