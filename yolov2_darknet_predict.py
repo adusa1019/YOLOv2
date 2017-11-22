@@ -23,7 +23,7 @@ class CocoPredictor:
         self.n_classes = 80
         self.n_boxes = 5
         self.detection_thresh = 0.4
-        self.iou_thresh = 0.4
+        self.iou_thresh = 0.6
 
         try:
             with open(class_file, 'r') as f:
@@ -67,9 +67,7 @@ class CocoPredictor:
             "box": Box(_x, _y, _w, _h).crop_region(input_height, input_width)
         } for _x, _y, _w, _h, _p, _id, _c in zip(x, y, w, h, prob, prob.argmax(axis=1), conf)]
 
-        # nms
-        nms_results = nms(results, self.iou_thresh)
-        return nms_results
+        return nms(results, self.iou_thresh)
 
 
 if __name__ == "__main__":
