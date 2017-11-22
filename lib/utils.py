@@ -15,17 +15,17 @@ class Box():
     def int_left_top(self):
         half_width = self.w / 2
         half_height = self.h / 2
-        return (int(round(self.x - half_width)), int(round(self.y - half_height)))
+        return round(self.x - half_width), round(self.y - half_height)
 
     def left_top(self):
         half_width = self.w / 2
         half_height = self.h / 2
-        return [self.x - half_width, self.y - half_height]
+        return self.x - half_width, self.y - half_height
 
     def int_right_bottom(self):
         half_width = self.w / 2
         half_height = self.h / 2
-        return (int(round(self.x + half_width)), int(round(self.y + half_height)))
+        return round(self.x + half_width), round(self.y + half_height)
 
     def right_bottom(self):
         half_width = self.w / 2
@@ -131,17 +131,17 @@ def nms(predicted_results, iou_thresh):
 def reshape_to_yolo_size(img):
     GRID_SIZE = 32
     width, height = img.size
-    min_pixel = 320
-    max_pixel = 416
+    MIN_PIXEL = 320
+    MAX_PIXEL = 416
 
     min_edge = min(width, height)
-    if min_edge < min_pixel:
-        width *= min_pixel / min_edge
-        height *= min_pixel / min_edge
+    if min_edge < MIN_PIXEL:
+        width *= MIN_PIXEL / min_edge
+        height *= MIN_PIXEL / min_edge
     max_edge = max(width, height)
-    if max_edge > max_pixel:
-        width *= max_pixel / max_edge
-        height *= max_pixel / max_edge
+    if max_edge > MAX_PIXEL:
+        width *= MAX_PIXEL / max_edge
+        height *= MAX_PIXEL / max_edge
 
     width = round(width / GRID_SIZE) * GRID_SIZE
     height = round(height / GRID_SIZE) * GRID_SIZE
