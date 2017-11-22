@@ -12,13 +12,13 @@ path = os.path.join(os.path.dirname(__file__), '../')
 sys.path.append(path)
 from yolov2 import YOLOv2
 
-parser = argparse.ArgumentParser(description="指定したパスのweightsファイルを読み込み、chainerモデルへ変換する")
-parser.add_argument('file', help="オリジナルのyolov2のweightsファイルへのパスを指定")
+parser = argparse.ArgumentParser(description="darknet weight file to chainer weight file")
+parser.add_argument('file', help="Weight file path")
 args = parser.parse_args()
 
 print("loading", args.file)
-file = open(args.file, "rb")
-dat = np.fromfile(file, dtype=np.float32)[5:]  # skip header(4xint)
+with open(args.file, "rb") as f:
+    dat = np.fromfile(f, dtype=np.float32)[5:]  # skip header(5xint)
 
 # load model
 print("loading initial model...")
