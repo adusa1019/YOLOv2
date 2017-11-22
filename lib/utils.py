@@ -130,21 +130,19 @@ def nms(predicted_results, iou_thresh):
 # reshape to yolo size
 def reshape_to_yolo_size(img):
     GRID_SIZE = 32
-    input_width, input_height = img.size
+    width, height = img.size
     min_pixel = 320
     max_pixel = 416
 
-    min_edge = min(input_width, input_height)
+    min_edge = min(width, height)
     if min_edge < min_pixel:
-        input_width *= min_pixel / min_edge
-        input_height *= min_pixel / min_edge
-    max_edge = max(input_width, input_height)
+        width *= min_pixel / min_edge
+        height *= min_pixel / min_edge
+    max_edge = max(width, height)
     if max_edge > max_pixel:
-        input_width *= max_pixel / max_edge
-        input_height *= max_pixel / max_edge
+        width *= max_pixel / max_edge
+        height *= max_pixel / max_edge
 
-    input_width = round(input_width / GRID_SIZE) * GRID_SIZE
-    input_height = round(input_height / GRID_SIZE) * GRID_SIZE
-    img = img.resize((input_width, input_height))
-
-    return img
+    width = round(width / GRID_SIZE) * GRID_SIZE
+    height = round(height / GRID_SIZE) * GRID_SIZE
+    return img.resize((width, height))
