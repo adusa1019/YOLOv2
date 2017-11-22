@@ -46,21 +46,6 @@ class Box():
         return self
 
 
-class Boxes():
-
-    def __init__(self, xs, ys, ws, hs):
-        self.boxes = [Box(x, y, w, h) for x, y, w, h in xs, ys, ws, hs]
-
-    def left_tops(self):
-        pass
-
-    def right_bottoms(self):
-        pass
-
-    def crop_regions(self, ws, hs):
-        pass
-
-
 # 2本の線の情報を受取り、被ってる線分の長さを返す。あくまで線分
 def overlap(x1, len1, x2, len2):
     len1_half = len1 / 2
@@ -134,38 +119,32 @@ def multi_box_iou(a, b):
 
 # non maximum suppression
 def nms(predicted_results, iou_thresh):
-    nms_results = []
-    for i in range(len(predicted_results)):
-        overlapped = False
-        for j in range(i + 1, len(predicted_results)):
-            if box_iou(predicted_results[i]["box"], predicted_results[j]["box"]) > iou_thresh:
-                overlapped = True
-                if predicted_results[i]["objectness"] > predicted_results[j]["objectness"]:
-                    temp = predicted_results[i]
-                    predicted_results[i] = predicted_results[j]
-                    predicted_results[j] = temp
-        if not overlapped:
-            nms_results.append(predicted_results[i])
+    predicted_results = sorted(predicted_results, key=lambda x: x["conf"], reverse=True)
+    nms_results = [
+        result for i, result in enumerate(predicted_results)
+        if all((box_iou(result["box"], r["box"]) < iou_thresh for r in predicted_results[:i]))
+    ]
     return nms_results
 
 
 # reshape to yolo size
 def reshape_to_yolo_size(img):
+    GRID_SIZE = 32
     input_width, input_height = img.size
     min_pixel = 320
     max_pixel = 416
 
-    min_edge = np.minimum(input_width, input_height)
+    min_edge = min(input_width, input_height)
     if min_edge < min_pixel:
         input_width *= min_pixel / min_edge
         input_height *= min_pixel / min_edge
-    max_edge = np.maximum(input_width, input_height)
+    max_edge = max(input_width, input_height)
     if max_edge > max_pixel:
         input_width *= max_pixel / max_edge
         input_height *= max_pixel / max_edge
 
-    input_width = int(input_width / 32 + round(input_width % 32 / 32)) * 32
-    input_height = int(input_height / 32 + round(input_height % 32 / 32)) * 32
+    input_width = round(input_width / GRID_SIZE) * GRID_SIZE
+    input_height = round(input_height / GRID_SIZE) * GRID_SIZE
     img = img.resize((input_width, input_height))
 
     return img
