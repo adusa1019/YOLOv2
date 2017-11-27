@@ -92,7 +92,7 @@ if __name__ == "__main__":
     # draw result
     draw = ImageDraw.Draw(orig_img)
     font = ImageFont.truetype("C:/Windows/Fonts/msgothic.ttc", 24)
-    with open("result/yolov2_result_%s.txt" % os.path.basename(path), "w") as f:
+    with open("result/yolov2_result_%s.txt" % os.path.basename(image_file), "w") as f:
         for result in nms_results:
             left, top = result["box"].int_left_top()
             right, bottom = result["box"].int_right_bottom()
@@ -105,5 +105,5 @@ if __name__ == "__main__":
             f.write(text + "\n")
 
     print("after predict: {}".format(time.time() - start))
-    print("save results to yolov2_result_%s.jpg" % os.path.basename(path))
-    orig_img.save("result/yolov2_result_%s.jpg" % os.path.basename(path))
+    print("save results to yolov2_result_%s.jpg" % os.path.basename(image_file))
+    orig_img.save("result/yolov2_result_%s.jpg" % os.path.basename(image_file))
